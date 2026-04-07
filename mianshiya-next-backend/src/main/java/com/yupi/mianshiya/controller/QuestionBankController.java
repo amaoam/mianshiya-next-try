@@ -150,7 +150,6 @@ public class QuestionBankController {
         ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
         Long id = questionBankQueryRequest.getId();
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-
         // todo 取消注释开启 HotKey（须确保 HotKey 依赖被打进 jar 包）
         // 生成 key
         String key = "bank_detail_" + id;

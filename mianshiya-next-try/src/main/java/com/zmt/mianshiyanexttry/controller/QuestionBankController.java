@@ -9,15 +9,20 @@ import com.zmt.mianshiyanexttry.common.ResultUtils;
 import com.zmt.mianshiyanexttry.constant.UserConstant;
 import com.zmt.mianshiyanexttry.exception.BusinessException;
 import com.zmt.mianshiyanexttry.exception.ThrowUtils;
+import com.zmt.mianshiyanexttry.model.dto.question.QuestionQueryRequest;
 import com.zmt.mianshiyanexttry.model.dto.questionBank.QuestionBankAddRequest;
 import com.zmt.mianshiyanexttry.model.dto.questionBank.QuestionBankEditRequest;
 import com.zmt.mianshiyanexttry.model.dto.questionBank.QuestionBankQueryRequest;
 import com.zmt.mianshiyanexttry.model.dto.questionBank.QuestionBankUpdateRequest;
+import com.zmt.mianshiyanexttry.model.entity.Question;
 import com.zmt.mianshiyanexttry.model.entity.QuestionBank;
 import com.zmt.mianshiyanexttry.model.entity.User;
 import com.zmt.mianshiyanexttry.model.vo.QuestionBankVO;
+import com.zmt.mianshiyanexttry.model.vo.QuestionVO;
 import com.zmt.mianshiyanexttry.service.QuestionBankService;
+import com.zmt.mianshiyanexttry.service.QuestionService;
 import com.zmt.mianshiyanexttry.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -33,13 +38,15 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/questionBank")
 @Slf4j
+@RequiredArgsConstructor
 public class QuestionBankController {
 
-    @Resource
-    private QuestionBankService questionBankService;
-
-    @Resource
-    private UserService userService;
+    
+    private final QuestionBankService questionBankService;
+    
+    private final UserService userService;
+    
+    private final QuestionService questionService;
 
     // region 增删改查
 
@@ -53,12 +60,10 @@ public class QuestionBankController {
     @PostMapping("/add")
     public BaseResponse<Long> addQuestionBank(@RequestBody QuestionBankAddRequest questionBankAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(questionBankAddRequest == null, ErrorCode.PARAMS_ERROR);
-        // todo 在此处将实体类和 DTO 进行转换
         QuestionBank questionBank = new QuestionBank();
         BeanUtils.copyProperties(questionBankAddRequest, questionBank);
         // 数据校验
         questionBankService.validQuestionBank(questionBank, true);
-        // todo 填充默认值
         User loginUser = userService.getLoginUser(request);
         questionBank.setUserId(loginUser.getId());
         // 写入数据库
@@ -108,7 +113,6 @@ public class QuestionBankController {
         if (questionBankUpdateRequest == null || questionBankUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
         QuestionBank questionBank = new QuestionBank();
         BeanUtils.copyProperties(questionBankUpdateRequest, questionBank);
         // 数据校验
@@ -126,17 +130,31 @@ public class QuestionBankController {
     /**
      * 根据 id 获取题库（封装类）
      *
-     * @param id
+     * @param 
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<QuestionBankVO> getQuestionBankVOById(long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<QuestionBankVO> getQuestionBankVOById(QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(questionBankQueryRequest==null, ErrorCode.PARAMS_ERROR);
         // 查询数据库
+        Long id = questionBankQueryRequest.getId();
         QuestionBank questionBank = questionBankService.getById(id);
         ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类
-        return ResultUtils.success(questionBankService.getQuestionBankVO(questionBank, request));
+        QuestionBankVO questionBankVO = questionBankService.getQuestionBankVO(questionBank, request);
+        // 是否要关联查询题库下的题目列表
+        boolean needQueryQuestionList = questionBankQueryRequest.isNeedQueryQuestionList();
+        if (needQueryQuestionList) {
+            QuestionQueryRequest questionQueryRequest = new QuestionQueryRequest();
+            questionQueryRequest.setQuestionBankId(id);
+            // 可以按需支持更多的题目搜索参数，比如分页
+            questionQueryRequest.setPageSize(questionBankQueryRequest.getPageSize());
+            questionQueryRequest.setCurrent(questionBankQueryRequest.getCurrent());
+            Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
+            Page<QuestionVO> questionVOPage = questionService.getQuestionVOPage(questionPage, request);
+            questionBankVO.setQuestionPage(questionVOPage);
+        }
+        return ResultUtils.success(questionBankVO);
     }
 
     /**
@@ -214,7 +232,6 @@ public class QuestionBankController {
         if (questionBankEditRequest == null || questionBankEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
         QuestionBank questionBank = new QuestionBank();
         BeanUtils.copyProperties(questionBankEditRequest, questionBank);
         // 数据校验
