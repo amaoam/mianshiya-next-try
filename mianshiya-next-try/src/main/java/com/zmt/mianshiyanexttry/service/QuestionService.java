@@ -8,6 +8,7 @@ import com.zmt.mianshiyanexttry.model.entity.Question;
 import com.zmt.mianshiyanexttry.model.vo.QuestionVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题目服务
@@ -49,4 +50,21 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+    /**
+     * 分页获取题目列表
+     *
+     * @param questionQueryRequest
+     * @return
+     */
+    Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest);
+
+    /**
+     * 批量删除题目
+     *
+     * @param questionIdList
+     */
+
+    void batchDeleteQuestions(List<Long> questionIdList);
+
 }

@@ -168,7 +168,6 @@ public class QuestionController {
         // 获取封装类
         return ResultUtils.success(questionService.getQuestionVO(question, request));
     }
-
     // 仅是为了方便，才把这段代码写到这里
     @Resource
     private CounterManager counterManager;
