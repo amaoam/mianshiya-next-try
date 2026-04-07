@@ -53,12 +53,10 @@ import static com.zmt.mianshiyanexttry.service.impl.UserServiceImpl.SALT;
 @Slf4j
 @RequiredArgsConstructor
 public class UserController {
-
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private WxOpenConfig wxOpenConfig;
+    
+    private final UserService userService;
+    
+    private final WxOpenConfig wxOpenConfig;
 
     // region 登录相关
 
@@ -76,9 +74,6 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
-        }
         long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
@@ -317,5 +312,34 @@ public class UserController {
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+    }
+
+    /**
+     * 添加用户签到记录
+     *
+     * @param request
+     * @return 当前是否已签到成功
+     */
+    @PostMapping("/add/sign_in")
+    public BaseResponse<Boolean> addUserSignIn(HttpServletRequest request) {
+        // 必须要登录才能签到
+        User loginUser = userService.getLoginUser(request);
+        boolean result = userService.addUserSignIn(loginUser.getId());
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 获取用户签到记录
+     *
+     * @param year    年份（为空表示当前年份）
+     * @param request
+     * @return 签到记录映射
+     */
+    @GetMapping("/get/sign_in")
+    public BaseResponse<List<Integer>> getUserSignInRecord(Integer year, HttpServletRequest request) {
+        // 必须要登录才能获取
+        User loginUser = userService.getLoginUser(request);
+        List<Integer> userSignInRecord = userService.getUserSignInRecord(loginUser.getId(), year);
+        return ResultUtils.success(userSignInRecord);
     }
 }
