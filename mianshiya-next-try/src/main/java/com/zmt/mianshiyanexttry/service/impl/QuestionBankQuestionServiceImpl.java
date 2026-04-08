@@ -27,11 +27,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -47,15 +49,19 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+
 public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQuestionMapper, QuestionBankQuestion> implements QuestionBankQuestionService {
 
-    
-    private final UserService userService;
-    
-    private final QuestionService questionService;
-    
-    private final QuestionBankService questionBankService;
+
+    @Resource
+    private UserService userService;
+
+    @Resource
+    @Lazy
+    private QuestionService questionService;
+
+    @Resource
+    private QuestionBankService questionBankService;
     /**
      * 校验数据
      *

@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
 *
  */
-
+@SpringBootApplication
 @MapperScan("com.zmt.mianshiyanexttry.mapper")
 @EnableScheduling
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)

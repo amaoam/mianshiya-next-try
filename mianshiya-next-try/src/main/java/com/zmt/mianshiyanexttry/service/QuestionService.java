@@ -67,4 +67,13 @@ public interface QuestionService extends IService<Question> {
 
     void batchDeleteQuestions(List<Long> questionIdList);
 
+    /**
+     * 从 ES 查询题目
+     *
+     * @param questionQueryRequest
+     * @return
+     */
+    Page<Question> searchFromEs(QuestionQueryRequest questionQueryRequest);
+
+
 }
