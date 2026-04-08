@@ -162,7 +162,6 @@ public class QuestionBankController {
                 return ResultUtils.success((QuestionBankVO) cachedQuestionBankVO);
             }
         }
-
         // 查询数据库
         QuestionBank questionBank = questionBankService.getById(id);
         ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR);
