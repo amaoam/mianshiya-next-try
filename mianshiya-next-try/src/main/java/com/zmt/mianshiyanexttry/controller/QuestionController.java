@@ -2,6 +2,7 @@ package com.zmt.mianshiyanexttry.controller;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.jd.platform.hotkey.client.callback.JdHotKeyStore;
 import com.zmt.mianshiyanexttry.annotation.AuthCheck;
 import com.zmt.mianshiyanexttry.common.BaseResponse;
 import com.zmt.mianshiyanexttry.common.DeleteRequest;
@@ -13,6 +14,7 @@ import com.zmt.mianshiyanexttry.exception.ThrowUtils;
 import com.zmt.mianshiyanexttry.model.dto.question.*;
 import com.zmt.mianshiyanexttry.model.entity.Question;
 import com.zmt.mianshiyanexttry.model.entity.User;
+import com.zmt.mianshiyanexttry.model.vo.QuestionBankVO;
 import com.zmt.mianshiyanexttry.model.vo.QuestionVO;
 import com.zmt.mianshiyanexttry.service.QuestionService;
 import com.zmt.mianshiyanexttry.service.UserService;
@@ -136,11 +138,24 @@ public class QuestionController {
     @GetMapping("/get/vo")
     public BaseResponse<QuestionVO> getQuestionVOById(long id, HttpServletRequest request) {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        // 生成 key
+        String key = "bank_detail_" + id;
+        // 如果是热 key
+        if (JdHotKeyStore.isHotKey(key)) {
+            // 从本地缓存中获取缓存值
+            Object cachedQuestionBankVO = JdHotKeyStore.get(key);
+            if (cachedQuestionBankVO != null) {
+                // 如果缓存中有值，直接返回缓存的值
+                return ResultUtils.success((QuestionVO) cachedQuestionBankVO);
+            }
+        }
         // 查询数据库
         Question question = questionService.getById(id);
         ThrowUtils.throwIf(question == null, ErrorCode.NOT_FOUND_ERROR);
+        QuestionVO questionVO = questionService.getQuestionVO(question, request);
+        JdHotKeyStore.smartSet(key, questionVO);
         // 获取封装类
-        return ResultUtils.success(questionService.getQuestionVO(question, request));
+        return ResultUtils.success(questionVO);
     }
 
     /**

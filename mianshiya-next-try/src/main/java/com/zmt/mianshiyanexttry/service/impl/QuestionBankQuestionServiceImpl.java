@@ -214,7 +214,6 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         // 检查题库 id 是否存在
         QuestionBank questionBank = questionBankService.getById(questionBankId);
         ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR, "题库不存在");
-
         // 自定义线程池（IO 密集型线程池）
         ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(
                 20,             // 核心线程数
