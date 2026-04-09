@@ -11,12 +11,7 @@ import com.zmt.mianshiyanexttry.config.WxOpenConfig;
 import com.zmt.mianshiyanexttry.constant.UserConstant;
 import com.zmt.mianshiyanexttry.exception.BusinessException;
 import com.zmt.mianshiyanexttry.exception.ThrowUtils;
-import com.zmt.mianshiyanexttry.model.dto.user.UserAddRequest;
-import com.zmt.mianshiyanexttry.model.dto.user.UserLoginRequest;
-import com.zmt.mianshiyanexttry.model.dto.user.UserQueryRequest;
-import com.zmt.mianshiyanexttry.model.dto.user.UserRegisterRequest;
-import com.zmt.mianshiyanexttry.model.dto.user.UserUpdateMyRequest;
-import com.zmt.mianshiyanexttry.model.dto.user.UserUpdateRequest;
+import com.zmt.mianshiyanexttry.model.dto.user.*;
 import com.zmt.mianshiyanexttry.model.entity.User;
 import com.zmt.mianshiyanexttry.model.vo.LoginUserVO;
 import com.zmt.mianshiyanexttry.model.vo.UserVO;
@@ -211,6 +206,30 @@ public class UserController {
         }
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 编辑用户信息（支持用户和管理员）
+     *
+     * @param userEditRequest 编辑请求（包含需要更新的字段）
+     * @param request HTTP 请求
+     * @return 是否成功
+     */
+    @PostMapping("/edit")
+    public BaseResponse<Boolean> editUser(@RequestBody UserEditRequest userEditRequest, HttpServletRequest request) {
+        if (userEditRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 构建更新对象
+        User user = new User();
+        BeanUtils.copyProperties(userEditRequest, user);
+        // 如果是用户编辑自己，强制设置 ID 为当前用户 ID（防止越权修改）
+        user.setId(loginUser.getId());
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
